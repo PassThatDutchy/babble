@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from './lib/supabase'
 import Auth from './components/Auth'
 import type { Session } from '@supabase/supabase-js'
+import BookSearch from './components/BookSearch'
 
 export default function App() {
   const [session, setSession] = useState<Session | null>(null)
@@ -26,6 +27,7 @@ export default function App() {
     <div>
       <p>Welcome, {session.user.email}!</p>
       <button onClick={() => supabase.auth.signOut()}>Log Out</button>
+      <BookSearch />
     </div>
   )
 }
