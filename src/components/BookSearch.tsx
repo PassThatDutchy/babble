@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { supabase } from '../lib/supabase'
 
 interface Book {
   id: string
@@ -11,6 +12,7 @@ export default function BookSearch() {
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<Book[]>([])
   const [loading, setLoading] = useState(false)
+  const [message, setMessage] = useState('')
 
   async function searchBooks() {
     if (!query) return
@@ -32,6 +34,31 @@ export default function BookSearch() {
     setLoading(false)
   }
 
+  async function addToShelf(book: Book, shelf: string) {
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) return
+
+    const { error } = await supabase
+      .from('shelf_entries')
+      .upsert({
+        user_id: user.id,
+        book_id: book.id,
+        title: book.title,
+        authors: book.authors.join(', '),
+        thumbnail: book.thumbnail,
+        shelf: shelf
+      }, {
+        onConflict: 'user_id, book_id'
+      })
+
+    if (error) {
+      setMessage('Something went wrong, please try again')
+    } else {
+      setMessage(`"${book.title}" added to ${shelf.replace('_', ' ')}!`)
+    }
+  }
+
   return (
     <div>
       <h2>Search Books</h2>
@@ -46,6 +73,7 @@ export default function BookSearch() {
       <button onClick={searchBooks}>Search</button>
 
       {loading && <p>Searching...</p>}
+      {message && <p style={{ color: 'green' }}>{message}</p>}
 
       <div>
         {results.map(book => (
@@ -56,7 +84,9 @@ export default function BookSearch() {
             <div>
               <h3>{book.title}</h3>
               <p>{book.authors.join(', ')}</p>
-              <button>Add to Shelf</button>
+              <button onClick={() => addToShelf(book, 'want_to_read')}>Want to Read</button>
+              <button onClick={() => addToShelf(book, 'reading')}>Currently Reading</button>
+              <button onClick={() => addToShelf(book, 'read')}>Read</button>
             </div>
           </div>
         ))}
