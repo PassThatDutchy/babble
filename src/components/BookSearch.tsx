@@ -15,11 +15,12 @@ export default function BookSearch() {
   const [message, setMessage] = useState('')
 
   async function searchBooks() {
+    console.log('API Key:', import.meta.env.VITE_GOOGLE_BOOKS_API_KEY)
     if (!query) return
     setLoading(true)
 
     const response = await fetch(
-      `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&maxResults=10`
+      `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&maxResults=10&key=${import.meta.env.VITE_GOOGLE_BOOKS_API_KEY}`
     )
     const data = await response.json()
 
